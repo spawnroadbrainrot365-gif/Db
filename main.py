@@ -12,7 +12,7 @@ class App(tk.Tk):
         self.geometry("450x250")
         self.resizable(False, False)
         
-        # إنشاء واجهة تسجيل الدخول أولاً
+        # تشغيل واجهة تسجيل الدخول
         self.setup_login_ui()
 
     def setup_login_ui(self):
@@ -41,32 +41,33 @@ class App(tk.Tk):
         
         if roblox_api.verify_cookie(cookie):
             messagebox.showinfo("نجاح", f"أهلاً {config.USER_DATA['username']}! تم ربط الحساب بنجاح.")
-            # الانتقال فوراً إلى الواجهة الرئيسية للرفع بعد النجاح
+            # الانتقال الفوري للوحة التحكم
             self.setup_main_dashboard_ui()
         else:
             messagebox.showerror("خطأ", "الكوكيز غير صحيح أو منتهي الصلاحية!")
             self.btn_login.config(text="🔗 التحقق وربط الحساب", state="normal")
 
     def setup_main_dashboard_ui(self):
-        """بناء وتصميم الواجهة الرئيسية للرفع وتصفح المجموعات"""
+        """بناء لوحة التحكم الكاملة للرفع بعد إصلاح الخطأ"""
         self.clear_window()
         self.title(f"Roblox Asset Manager - لوحة التحكم ({config.USER_DATA['username']})")
-        self.geometry("550x450")
+        self.geometry("550x500")
+        self.resizable(False, False)
         
-        # شريط معلومات المستخدم العلوي
-        user_frame = tk.Frame(self, bg="#34495e", padding=10)
+        # شريط معلومات المستخدم العلوي (تم إصلاح العرض هنا)
+        user_frame = tk.Frame(self, bg="#34495e")
         user_frame.pack(fill="x", pady=(0, 15))
         
-        lbl_welcome = tk.Label(user_frame, text=f"المستخدم المتصل: {config.USER_DATA['username']} (ID: {config.USER_DATA['user_id']})", fg="white", bg="#34495e", font=("Arial", 10, "bold"))
-        lbl_welcome.pack(side="left", padx=10)
+        lbl_welcome = tk.Label(user_frame, text=f"👤 المستخدم: {config.USER_DATA['username']} | ID: {config.USER_DATA['user_id']}", fg="white", bg="#34495e", font=("Arial", 10, "bold"))
+        lbl_welcome.pack(pady=10, padx=10, side="left")
         
-        # جلب المجموعات
+        # جلب المجموعات من ملف الـ API
         self.groups = roblox_api.get_user_groups()
         
-        # اختيار جهة الرفع (حساب شخصي أو مجموعة)
-        tk.Label(self, text="🎯 اختر جهة الرفع (أين تريد رفع الملف؟):", font=("Arial", 10, "bold")).pack(anchor="w", padx=20, pady=5)
+        # 1. اختيار جهة الرفع
+        tk.Label(self, text="🎯 اختر مكان الرفع (حسابك أو مجموعتك):", font=("Arial", 10, "bold")).pack(anchor="w", padx=20, pady=5)
         
-        self.upload_target_combo = ttk.Combobox(self, width=50, state="readonly")
+        self.upload_target_combo = ttk.Combobox(self, state="readonly")
         combo_values = ["حسابي الشخصي (My Profile)"]
         for g in self.groups:
             combo_values.append(f"مجموعة: {g['name']} (ID: {g['id']}) - رتبتك: {g['role']}")
@@ -75,24 +76,24 @@ class App(tk.Tk):
         self.upload_target_combo.current(0)
         self.upload_target_combo.pack(pady=5, padx=20, fill="x")
         
-        # حقل إدخال اسم الـ Asset
+        # 2. حقل إدخال اسم الـ Asset
         tk.Label(self, text="📝 اسم الملف في روبلوكس (Title):", font=("Arial", 10, "bold")).pack(anchor="w", padx=20, pady=5)
-        self.txt_title = tk.Entry(self, width=50)
+        self.txt_title = tk.Entry(self)
         self.txt_title.pack(pady=5, padx=20, fill="x")
         
-        # قسم اختيار الملف من الجهاز
+        # 3. قسم اختيار الملف من الجهاز
         tk.Label(self, text="📁 اختر الملف من جهازك:", font=("Arial", 10, "bold")).pack(anchor="w", padx=20, pady=5)
         
         file_frame = tk.Frame(self)
         file_frame.pack(pady=5, padx=20, fill="x")
         
-        self.txt_file_path = tk.Entry(file_frame, width=40)
+        self.txt_file_path = tk.Entry(file_frame)
         self.txt_file_path.pack(side="left", fill="x", expand=True, padx=(0, 5))
         
         btn_browse = tk.Button(file_frame, text="استعراض...", command=self.browse_file)
         btn_browse.pack(side="right")
         
-        # نوع الرفع (صوت أو أنميشن)
+        # 4. نوع الرفع (صوت أو أنميشن)
         tk.Label(self, text="⚙️ نوع الملف المراد رفعه:", font=("Arial", 10, "bold")).pack(anchor="w", padx=20, pady=5)
         self.asset_type = tk.StringVar(value="audio")
         
@@ -101,7 +102,7 @@ class App(tk.Tk):
         tk.Radiobutton(radio_frame, text="ملف صوتي (MP3 / WAV)", variable=self.asset_type, value="audio").pack(side="left", padx=20)
         tk.Radiobutton(radio_frame, text="أنميشن (FBX / Animation)", variable=self.asset_type, value="animation").pack(side="left", padx=20)
         
-        # زر الرفع النهائي
+        # 5. زر الرفع النهائي
         self.btn_upload = tk.Button(self, text="🚀 بدء الرفع إلى روبلوكس", command=self.start_upload, bg="#e67e22", fg="white", font=("Arial", 12, "bold"))
         self.btn_upload.pack(pady=25, padx=20, fill="x")
 
@@ -112,7 +113,6 @@ class App(tk.Tk):
             self.txt_file_path.delete(0, tk.END)
             self.txt_file_path.insert(0, selected_file)
             
-            # محاولة تخمين اسم الملف تلقائياً ووضعه في حقل العنوان
             base_name = os.path.splitext(os.path.basename(selected_file))[0]
             self.txt_title.delete(0, tk.END)
             self.txt_title.insert(0, base_name)
@@ -125,7 +125,6 @@ class App(tk.Tk):
             messagebox.showwarning("تنبيه", "الرجاء تحديد الملف وكتابة الاسم أولاً!")
             return
             
-        # تحديد الـ Group ID إذا تم اختياره من القائمة المنسدلة
         selected_index = self.upload_target_combo.current()
         group_id = None
         if selected_index > 0:
@@ -134,15 +133,13 @@ class App(tk.Tk):
         self.btn_upload.config(text="جاري الرفع الآن... انتظر قليلاً", state="disabled")
         self.update()
         
-        # عملية الرفع بناءً على النوع المختار
         if self.asset_type.get() == "audio":
             result = roblox_api.upload_audio(file_path, title, group_id)
         else:
             result = roblox_api.upload_animation(file_path, title, group_id)
             
         if result.get("success"):
-            messagebox.showinfo("تم الرفع بنجاح! 🎉", f"تم رفع الملف بنجاح إلى روبلوكس!\nالـ Asset ID الخاص بك هو: {result.get('asset_id')}")
-            # نسخ الـ ID للحافظة تلقائياً ليسهل لصقه في روبلوكس ستوديو
+            messagebox.showinfo("تم الرفع بنجاح! 🎉", f"تم رفع الملف بنجاح!\nAsset ID: {result.get('asset_id')}")
             self.clipboard_clear()
             self.clipboard_append(str(result.get('asset_id')))
         else:
@@ -151,7 +148,6 @@ class App(tk.Tk):
         self.btn_upload.config(text="🚀 بدء الرفع إلى روبلوكس", state="normal")
 
     def clear_window(self):
-        """تنظيف النافذة ومسح جميع الأدوات للانتقال لواجهة أخرى"""
         for widget in self.winfo_children():
             widget.destroy()
 
